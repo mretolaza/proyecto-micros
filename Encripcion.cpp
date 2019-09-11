@@ -41,6 +41,7 @@ struct bloque{
 typedef struct opb{
 	char bit;
 	int key;
+	int mod;
 	char result;
 } opb;
 
@@ -70,8 +71,11 @@ void *operarbit (void *unbit){
 	}*/
 	int result;
 	result=(ps->bit)+(ps->key);
-	if (result>220){
-		result=result%220;
+	if (result>(ps->mod)){
+		result=result%(ps->mod);
+		if (result<33){
+			result=result+'!';
+		}
 	}
 	ps->result=char(result);
 	//return (void *)output;
@@ -134,8 +138,8 @@ int main(int argc, char *argv[])
 		263,269,271,277,281,
 		317,331,337,347,349,
 		383,389,397,401,409,
-		443,449,457,461,463,
-		487,491,467,479
+		443,449,457/*,461,463,
+		487,491,467,479*/
 	};
 
 	int rc, rc1; //valor de retorno del pthread
@@ -175,13 +179,14 @@ int main(int argc, char *argv[])
 
 		y=y-' ';
 
+		opbe.mod=220;
 		if (f>=44){
 			opbe.bit=y;
-			opbe.key=llave[f+5];
+			opbe.key=llave[f/*+5*/];
 		}
 		else{
 			opbe.bit=y;
-			opbe.key=llave[f+2];
+			opbe.key=llave[f/*+2*/];
 		}
 
 		rc = pthread_create(&tid, &attr/*NULL*/, operarbit, (void *)&opbe);
@@ -195,18 +200,54 @@ int main(int argc, char *argv[])
 		char res;
 		res=opbe.result;
 		if (f>=44){
-			ben.b_bits[perini[f]]=res;
+			ben.b_bits[perini[f-1]]=res;
+			opbe.bit=res;
 			//cout<<opbe.result;
 			//strcpy(result, ben.b_bits[perini[f]+6]);
 		}
 		else{
 			ben.b_bits[perini[f]]=res;
+			opbe.bit=res;
 			//printf("%s\n",opbe.result);
 			//strcpy(result, ben.b_bits[perini[f]+3]);
 		}
 		if (rc) {
 			printf("ERROR; return code from pthread_join() is %d\n", rc);
 			exit(-1);
+		}
+		int w=0;
+		while (w<9){
+			opbe.mod=opbe.mod-10;
+			if (w==8){
+				opbe.mod=100;
+			}
+			rc = pthread_create(&tid, &attr/*NULL*/, operarbit, (void *)&opbe);
+						
+			if (rc) {              
+				printf("ERROR; return code from pthread_create() is %d\n", rc);
+				exit(-1);
+			}
+
+			rc = pthread_join(tid, NULL);
+			char res;
+			res=opbe.result;
+			if (f>=44){
+				ben.b_bits[f-1]=res;
+				opbe.bit=res;
+				//cout<<opbe.result;
+				//strcpy(result, ben.b_bits[perini[f]+6]);
+			}
+			else{
+				ben.b_bits[f-1]=res;
+				opbe.bit=res;
+				//printf("%s\n",opbe.result);
+				//strcpy(result, ben.b_bits[perini[f]+3]);
+			}
+			if (rc) {
+				printf("ERROR; return code from pthread_join() is %d\n", rc);
+				exit(-1);
+			}
+			w++;
 		}
 
 		//char *result = (char *) exit_value;
@@ -223,13 +264,13 @@ int main(int argc, char *argv[])
 		
 		if (f%88==0)
 		{ 	
-			for (int i=0; i<3; i++){
+			/*for (int i=0; i<3; i++){
 				ben.b_bits[i]=char(llave[i]);
 			}
 
 			for (int u=44; u<47; u++){
 				ben.b_bits[u]=char(llave[u]);
-			}
+			}*/
 
 			//memcpy(bls.b_bits, cadini, 44);
 			
