@@ -54,7 +54,7 @@ void *escribir (void *block)
 	// Protección en caso el archivo falle en su ejecución
 	if (!escribir)
 	{
-		cerr << "Error. No se ha podido crear el archivo,  primoquintoss.txt" << endl;
+		cerr << "Error. No se ha podido crear el archivo,  Textoencriptado.txt" << endl;
 		exit(EXIT_FAILURE);
 	}
 	escribir<<ps->b_bits<<endl;	
@@ -62,13 +62,6 @@ void *escribir (void *block)
 
 void *operarbit (void *unbit){
 	opb *ps = (opb *)unbit;
-	/*struct opb *ps;
-	ps=(struct opb *)unbit;
-	int output;
-	output=(ps->bit)+(ps->key);
-	if (output>220){
-		output=output%220;
-	}*/
 	int result;
 	result=(ps->bit)+(ps->key);
 	if (result>(ps->mod)){
@@ -78,7 +71,6 @@ void *operarbit (void *unbit){
 		}
 	}
 	ps->result=char(result);
-	//return (void *)output;
 	pthread_exit(NULL);	
 }
 
@@ -158,9 +150,6 @@ int main(int argc, char *argv[])
 	char x;
 	opbe.result='a';
 
-	//void *exit_value;
-	//int result = 1;
-	//char xblock[88];
 	ifstream texto("Prueba.txt", ios::in);
 
 	if (!texto)
@@ -199,18 +188,8 @@ int main(int argc, char *argv[])
 		rc = pthread_join(tid, NULL);
 		char res;
 		res=opbe.result;
-		if (f>=44){
-			ben.b_bits[perini[f-1]]=res;
-			opbe.bit=res;
-			//cout<<opbe.result;
-			//strcpy(result, ben.b_bits[perini[f]+6]);
-		}
-		else{
-			ben.b_bits[perini[f]]=res;
-			opbe.bit=res;
-			//printf("%s\n",opbe.result);
-			//strcpy(result, ben.b_bits[perini[f]+3]);
-		}
+		ben.b_bits[perini[f-1]]=res;
+		opbe.bit=res;
 		if (rc) {
 			printf("ERROR; return code from pthread_join() is %d\n", rc);
 			exit(-1);
@@ -231,18 +210,8 @@ int main(int argc, char *argv[])
 			rc = pthread_join(tid, NULL);
 			char res;
 			res=opbe.result;
-			if (f>=44){
-				ben.b_bits[f-1]=res;
-				opbe.bit=res;
-				//cout<<opbe.result;
-				//strcpy(result, ben.b_bits[perini[f]+6]);
-			}
-			else{
-				ben.b_bits[f-1]=res;
-				opbe.bit=res;
-				//printf("%s\n",opbe.result);
-				//strcpy(result, ben.b_bits[perini[f]+3]);
-			}
+			ben.b_bits[f-1]=res;
+			opbe.bit=res;
 			if (rc) {
 				printf("ERROR; return code from pthread_join() is %d\n", rc);
 				exit(-1);
@@ -250,29 +219,10 @@ int main(int argc, char *argv[])
 			w++;
 		}
 
-		//char *result = (char *) exit_value;
-		//char res=*result;
-		//char res = *static_cast<char*>(exit_value);
-		//char res;
-		//res=result-' ';
-		/*if (res<=31){
-			res=220-res;
-		}*/
-
-		
 		f++;
 		
 		if (f%88==0)
 		{ 	
-			/*for (int i=0; i<3; i++){
-				ben.b_bits[i]=char(llave[i]);
-			}
-
-			for (int u=44; u<47; u++){
-				ben.b_bits[u]=char(llave[u]);
-			}*/
-
-			//memcpy(bls.b_bits, cadini, 44);
 			
 			rc = pthread_create(&tid, &attr, escribir, (void *)&ben);
 						
