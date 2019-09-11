@@ -36,7 +36,7 @@ struct benc{
 
 struct dato{
 	char dat;
-}
+};
 
 typedef struct opb{
 	char bit;
@@ -46,11 +46,8 @@ typedef struct opb{
 } opb; 
 
 
-void *escribir (void *block) 
+void escribir (char block) 
 {
-	struct dato *ps;
-	ps=(struct dato *)block;
-
 	ofstream escribir("Textodes.txt", ios::app);
 	// Protección en caso el archivo falle en su ejecución
 	if (!escribir)
@@ -58,7 +55,7 @@ void *escribir (void *block)
 		cerr << "Error. No se ha podido crear el archivo,  Textodes.txt" << endl;
 		exit(EXIT_FAILURE);
 	}
-	escribir<<ps->dat<<endl;	
+	escribir<<block;	
 }
 
 int Escribe(int DATO){ 
@@ -67,8 +64,6 @@ int Escribe(int DATO){
     pthread_cond_wait(& vacio, &semaf); 
   cont++; buffer[in]= DATO;
   in = (in+1) % 88;
-  //int i;
-  //for(i=0; i<(0xFFFFFF);i++);
   pthread_cond_broadcast(& lleno); 
   pthread_mutex_unlock(& semaf); 
 } 
@@ -80,36 +75,43 @@ void *operarbit (void *unbit){
 		ps->bit=(ps->bit)-33;
 	}
 	int result;
-	result=(ps->bit)+(ps->key);
-	if (result>(ps->mod)){
-		result=result%(ps->mod);
-		if (result<33){
-			result=result+'!';
-		}
+	result=(ps->bit)-(ps->key);
+	if (result<0){
+		result=220+result;
 	}
-	Escribe(ps->result);
-	//ps->result=char(result);
+	ps->result=char(result);
 	pthread_exit(NULL);	
 }
 
 int Lee(){ 
-  int dato; 
-  pthread_mutex_lock(& semaf);
-  while (cont == 0) 
-    pthread_cond_wait(& lleno, &semaf); 
-  cont--; dato = buffer[out]; 
-  out = (out+1) % 88;
-  pthread_cond_broadcast(& vacio); 
-  pthread_mutex_unlock(& semaf); 
-  return dato; 
+	int dato; 
+	pthread_mutex_lock(& semaf);
+	while (cont == 0) 
+	    pthread_cond_wait(& lleno, &semaf); 
+	cont--; dato = buffer[out]; 
+	out = (out+1) % 88;
+	pthread_cond_broadcast(& vacio); 
+	pthread_mutex_unlock(& semaf); 
+	return dato; 
 } 
 
-main(){ 
-  int i; 
-  pthread_t hijo;
-  in = out = cont = 0;
 
-  struct benc ben;
+void *productor(void * arg){
+	struct benc *ps;
+	ps=(struct benc *)arg; 
+  	int i; 
+	for (i= 0; i< 88; i++) 
+	    Escribe(ps->b_bits[i]); 
+	pthread_exit(0); 
+} 
+
+int main(int argc, char *argv[])
+{ 
+  	//int i; 
+  	pthread_t hijo;
+  	in = out = cont = 0;
+
+  	struct benc ben;
 
 	//struct opb opbe;
 	opb opbe;
@@ -134,6 +136,10 @@ main(){
 		17,42,5,30,45,
 		80,60,3};
 
+	/*int llave220[88]={
+		147,63,71,113,161,
+		87,103,
+	}*/
 
 	int llave[94]={
 		2,3,5,7,11,
@@ -158,13 +164,103 @@ main(){
 	};
 
  
-  pthread_mutex_init(&semaf, NULL); 
-  pthread_cond_init(&lleno, NULL); 
-  pthread_cond_init(&vacio, NULL);
-  pthread_create(&hijo,NULL,productor,NULL);
-  /*printf("Padre\n");
-  for (i= 0; i< 100; i++) 
-    printf("%d\n ", Lee());*/
-  exit(0); 
+	pthread_mutex_init(&semaf, NULL); 
+  	pthread_cond_init(&lleno, NULL); 
+  	pthread_cond_init(&vacio, NULL);
+
+  	int rc, rc1; //valor de retorno del pthread
+	pthread_t tid;
+	  
+	pthread_attr_t attr;
+	
+	pthread_attr_init(&attr);
+	  
+	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
+
+	//char cadini[88];
+	int f=0;
+	char x;
+  	ifstream texto("Textoencriptado.txt", ios::in);
+
+	if (!texto)
+	{
+		cerr << "Error, No se puede abrir primos.txt";
+		exit(EXIT_FAILURE); // terminate with error
+	}
+
+
+	while (texto >> x)
+	{
+		//int y= static_cast<unsigned char>(x);
+		opbe.bit=x;
+		opbe.key=llave[f];
+
+		int w=0;
+		opbe.mod=100;
+		while (w<9){
+			if (w==1){
+				opbe.mod=140;
+			}
+			if (w>1){
+				opbe.mod=opbe.mod+10;
+			}
+			rc = pthread_create(&tid, &attr/*NULL*/, operarbit, (void *)&opbe);
+						
+			if (rc) {              
+				printf("ERROR; return code from pthread_create() is %d\n", rc);
+				exit(-1);
+			}
+
+			rc = pthread_join(tid, NULL);
+			char res;
+			res=opbe.result;
+			opbe.bit=res;
+			if (rc) {
+				printf("ERROR; return code from pthread_join() is %d\n", rc);
+				exit(-1);
+			}
+			w++;
+		}
+
+		f++;
+
+		opbe.mod=220;
+		rc = pthread_create(&tid, &attr/*NULL*/, operarbit, (void *)&opbe);
+						
+		if (rc) {              
+			printf("ERROR; return code from pthread_create() is %d\n", rc);
+			exit(-1);
+		}
+
+		rc = pthread_join(tid, NULL);
+		char res;
+		res=opbe.result;
+		res=res+' ';
+		if (int(res)==157){
+			res=' ';
+		}
+		ben.b_bits[perini[f]]=res;
+		if (rc) {
+			printf("ERROR; return code from pthread_join() is %d\n", rc);
+			exit(-1);
+		}
+		
+		if (f%88==0)
+		{ 	
+			pthread_create(&hijo,NULL,productor,(void *)&ben);
+			int e=0;
+			for (e=0; e<88; e++){
+				escribir(Lee());
+			}	
+			f=0;
+		}
+	}
+
+	cout << endl;
+
+	pthread_attr_destroy(&attr);
+	pthread_exit(NULL);
+
+  	exit(0); 
 }
 
