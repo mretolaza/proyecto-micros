@@ -15,6 +15,7 @@ Integrantes:
 #include<string.h>
 #include<pthread.h>
 #include<stdlib.h>
+#include <sys/types.h>
 #include<unistd.h>
 #include <cstdlib>
 #include <sstream>
@@ -37,11 +38,11 @@ struct bloque{
 	char b_bits[47];
 };
 
-struct opb{
+typedef struct opb{
 	char bit;
 	int key;
 	char result;
-};
+} opb;
 
 void *escribir (void *block) 
 {
@@ -59,21 +60,22 @@ void *escribir (void *block)
 }
 
 void *operarbit (void *unbit){
-	struct opb *ps;
+	opb *ps = (opb *)unbit;
+	/*struct opb *ps;
 	ps=(struct opb *)unbit;
 	int output;
 	output=(ps->bit)+(ps->key);
 	if (output>220){
 		output=output%220;
-	}
-	/*int result;
+	}*/
+	int result;
 	result=(ps->bit)+(ps->key);
 	if (result>220){
 		result=result%220;
 	}
-	ps->result=char(result);*/
-	return (void *)output;
-	//pthread_exit(NULL);	
+	ps->result=char(result);
+	//return (void *)output;
+	pthread_exit(NULL);	
 }
 
 void *output(void *block)
@@ -150,9 +152,10 @@ int main(int argc, char *argv[])
 	char cadini[88];
 	int f=0;
 	char x;
+	opbe.result='a';
 
-	void *exit_value;
-	int result = 1;
+	//void *exit_value;
+	//int result = 1;
 	//char xblock[88];
 	ifstream texto("Prueba.txt", ios::in);
 
@@ -188,29 +191,33 @@ int main(int argc, char *argv[])
 			exit(-1);
 		}
 
-		rc = pthread_join(tid, &exit_value);
+		rc = pthread_join(tid, NULL);
+		char res=opbe.result;
+		if (f>=44){
+			ben.b_bits[perini[f+5]]=res;
+			//cout<<opbe.result;
+			//strcpy(result, ben.b_bits[perini[f]+6]);
+		}
+		else{
+			ben.b_bits[perini[f+2]]=res;
+			//printf("%s\n",opbe.result);
+			//strcpy(result, ben.b_bits[perini[f]+3]);
+		}
 		if (rc) {
 			printf("ERROR; return code from pthread_join() is %d\n", rc);
 			exit(-1);
 		}
 
-		char *result = (char *) exit_value;
+		//char *result = (char *) exit_value;
 		//char res=*result;
 		//char res = *static_cast<char*>(exit_value);
-		char res;
+		//char res;
 		//res=result-' ';
-		if (res<=31){
+		/*if (res<=31){
 			res=220-res;
-		}
+		}*/
 
-		if (f>=44){
-			ben.b_bits[perini[f+5]]=(result-' ');
-			//strcpy(result, ben.b_bits[perini[f]+6]);
-		}
-		else{
-			ben.b_bits[perini[f+2]]=(result-' ');
-			//strcpy(result, ben.b_bits[perini[f]+3]);
-		}
+		
 		f++;
 		
 		if (f%88==0)
