@@ -184,7 +184,7 @@ int main(int argc, char *argv[])
 			opbe.key=llave[f+2];
 		}
 
-		rc = pthread_create(&tid, &attr, operarbit, (void *)&opbe);
+		rc = pthread_create(&tid, &attr/*NULL*/, operarbit, (void *)&opbe);
 						
 		if (rc) {              
 			printf("ERROR; return code from pthread_create() is %d\n", rc);
@@ -192,14 +192,15 @@ int main(int argc, char *argv[])
 		}
 
 		rc = pthread_join(tid, NULL);
-		char res=opbe.result;
+		char res;
+		res=opbe.result;
 		if (f>=44){
-			ben.b_bits[perini[f+5]]=res;
+			ben.b_bits[perini[f]]=res;
 			//cout<<opbe.result;
 			//strcpy(result, ben.b_bits[perini[f]+6]);
 		}
 		else{
-			ben.b_bits[perini[f+2]]=res;
+			ben.b_bits[perini[f]]=res;
 			//printf("%s\n",opbe.result);
 			//strcpy(result, ben.b_bits[perini[f]+3]);
 		}
