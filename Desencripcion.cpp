@@ -81,7 +81,7 @@ int Escribe(int DATO){
 
 void *operarbit (void *unbit){
 	opb *ps = (opb *)unbit;
-	if (((ps->bit)-33)<33){
+	if (((ps->bit)-'!')<33){
 		ps->bit=(ps->bit)-33;
 	}
 	int result;
@@ -224,7 +224,7 @@ int main(int argc, char *argv[])
 	{
 		//int y= static_cast<unsigned char>(x);
 		opbe.bit=x;
-		opbe.key=llave[perini[f]-1];
+		opbe.key=llave[f];
 
 		int w=0;
 		opbe.mod=100;
@@ -257,7 +257,7 @@ int main(int argc, char *argv[])
 		f++;
 
 		opbe.mod=220;
-		opbe.key=llave[codllave[f]-1];
+		opbe.key=llave[perini[f]-1];
 		rc = pthread_create(&tid, &attr/*NULL*/, operarbit, (void *)&opbe);
 						
 		if (rc) {              
