@@ -113,7 +113,7 @@ int main(int argc, char *argv[])
 		69,18,19};
 
 	int llave[94]={
-		2,3,5,7,11,
+		/*2,3,5,7,*/11,
 		31,37,41,43,47,
 		73,79,83,89,97,
 		127,131,137,139,149,
@@ -130,8 +130,8 @@ int main(int argc, char *argv[])
 		263,269,271,277,281,
 		317,331,337,347,349,
 		383,389,397,401,409,
-		443,449,457/*,461,463,
-		487,491,467,479*/
+		443,449,457,461,463,
+		487,491/*,467,479*/
 	};
 
 	int rc, rc1; //valor de retorno del pthread
@@ -182,7 +182,7 @@ int main(int argc, char *argv[])
 		rc = pthread_join(tid, NULL);
 		char res;
 		res=opbe.result;
-		ben.b_bits[perini[f]]=res;
+		ben.b_bits[perini[f]-1]=res;
 		opbe.bit=res;
 		if (rc) {
 			printf("ERROR; return code from pthread_join() is %d\n", rc);
