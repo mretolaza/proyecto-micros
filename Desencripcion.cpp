@@ -130,6 +130,26 @@ int main(int argc, char *argv[])
 	//struct opb opbe;
 	opb opbe;
 
+	int codllave[88]={
+		63,44,88,61,83,
+		37,45,79,3,31,
+		68,60,78,74,29,
+		25,81,43,76,73,
+		42,62,10,1,72,
+		2,30,49,38,84,
+		59,20,7,57,80,
+		6,70,64,4,41,
+		48,82,28,40,85,
+		71,9,15,24,56,
+		27,8,50,67,58,
+		55,46,22,12,87,
+		52,65,51,11,32,
+		21,35,36,66,26,
+		77,34,47,33,5,
+		39,17,13,16,86,
+		53,23,54,14,75,
+		69,18,19};
+
 	int perini[88]={
 		24,26,9,39,75,
 		36,33,52,47,23,
@@ -204,7 +224,7 @@ int main(int argc, char *argv[])
 	{
 		//int y= static_cast<unsigned char>(x);
 		opbe.bit=x;
-		opbe.key=llave[f];
+		opbe.key=llave[perini[f]-1];
 
 		int w=0;
 		opbe.mod=100;
@@ -237,7 +257,7 @@ int main(int argc, char *argv[])
 		f++;
 
 		opbe.mod=220;
-		opbe.key=llave[f];
+		opbe.key=llave[codllave[f]-1];
 		rc = pthread_create(&tid, &attr/*NULL*/, operarbit, (void *)&opbe);
 						
 		if (rc) {              
@@ -249,7 +269,7 @@ int main(int argc, char *argv[])
 		char res;
 		res=opbe.result;
 		res=res+' ';
-		if (int(res)==157){
+		if (res==157){
 			res=' ';
 		}
 		ben.b_bits[perini[f]-1]=res;

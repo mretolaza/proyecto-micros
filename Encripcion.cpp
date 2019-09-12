@@ -202,9 +202,7 @@ int main(int argc, char *argv[])
 			}
 
 			rc = pthread_join(tid, NULL);
-			char res;
 			res=opbe.result;
-			ben.b_bits[f]=res;
 			opbe.bit=res;
 			if (rc) {
 				printf("ERROR; return code from pthread_join() is %d\n", rc);
@@ -212,7 +210,7 @@ int main(int argc, char *argv[])
 			}
 			w++;
 		}
-
+		ben.b_bits[f]=res;
 		f++;
 		
 		if (f%88==0)
