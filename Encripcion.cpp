@@ -63,7 +63,7 @@ void *escribir (void *block)
 void *operarbit (void *unbit){
 	opb *ps = (opb *)unbit;
 	int result;
-	result=(ps->bit)+(ps->key);
+	result=(ps->bit)*(ps->key);
 	if (result>(ps->mod)){
 		result=result%(ps->mod);
 		if (result<33){
