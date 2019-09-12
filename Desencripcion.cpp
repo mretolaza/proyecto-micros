@@ -75,9 +75,12 @@ void *operarbit (void *unbit){
 		ps->bit=(ps->bit)-33;
 	}
 	int result;
-	result=(ps->bit)-(ps->key);
-	if (result<0){
-		result=220+result;
+	result=(ps->bit)*(ps->key);
+	if (result>(ps->mod)){
+		result=result%(ps->mod);
+		if (result<33){
+			result=result+'!';
+		}
 	}
 	ps->result=char(result);
 	pthread_exit(NULL);	
@@ -136,11 +139,22 @@ int main(int argc, char *argv[])
 		17,42,5,30,45,
 		80,60,3};
 
-	/*int llave220[88]={
+	int llave220[88]={
 		147,63,71,113,161,
 		87,103,
-	}*/
+	};
+	int llave210[88]={};
+	int llave200[88]={};
+	int llave190[88]={};
+	int llave180[88]={};
+	int llave170[88]={};
+	int llave160[88]={};
+	int llave150[88]={};
+	int llave140[88]={};
+	int llave100[88]={};
 
+	/*Esta se uso para encriptar, tomar de base y calcular sus inversos multiplicativos 
+	en 100,140,150,160,170,180,190,200,210,220*/
 	int llave[94]={
 		2,3,5,7,11,
 		31,37,41,43,47,
@@ -193,16 +207,42 @@ int main(int argc, char *argv[])
 	{
 		//int y= static_cast<unsigned char>(x);
 		opbe.bit=x;
-		opbe.key=llave[f];
+		opbe.key=llave100[f];
 
 		int w=0;
 		opbe.mod=100;
 		while (w<9){
 			if (w==1){
 				opbe.mod=140;
+				opbe.key=llave140[f];
 			}
-			if (w>1){
-				opbe.mod=opbe.mod+10;
+			if (w==2){
+				opbe.mod=150;
+				opbe.key=llave150[f];
+			}
+			if (w==3){
+				opbe.mod=160;
+				opbe.key=llave160[f];
+			}
+			if (w==4){
+				opbe.mod=170;
+				opbe.key=llave170[f];
+			}
+			if (w==5){
+				opbe.mod=180;
+				opbe.key=llave180[f];
+			}
+			if (w==6){
+				opbe.mod=190;
+				opbe.key=llave190[f];
+			}
+			if (w==7){
+				opbe.mod=200;
+				opbe.key=llave200[f];
+			}
+			if (w==8){
+				opbe.mod=210;
+				opbe.key=llave210[f];
 			}
 			rc = pthread_create(&tid, &attr/*NULL*/, operarbit, (void *)&opbe);
 						
@@ -225,6 +265,7 @@ int main(int argc, char *argv[])
 		f++;
 
 		opbe.mod=220;
+		opbe.key=llave220[f];
 		rc = pthread_create(&tid, &attr/*NULL*/, operarbit, (void *)&opbe);
 						
 		if (rc) {              
