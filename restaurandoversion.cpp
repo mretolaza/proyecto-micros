@@ -3,7 +3,6 @@ Universidad del Valle de Guatemala
 Proyecto 2 de Microprocesadores
 Encripcion de un archivo txt
 Fecha: 09 de septiembre de 2019
-
 Integrantes:
 -Diana Ximena de Leon Figueroa
 -Maria Mercedes Retolaza Reyna
@@ -26,16 +25,16 @@ Integrantes:
 
 using namespace std;
 
-int in, out, cont, buffer[88]; 
-pthread_cond_t lleno, vacio; 
-pthread_mutex_t semaf;
+struct bloques{
+	char b_bits[44];
+};
 
 struct benc{
 	char b_bits[94];
 };
 
-struct dato{
-	char dat;
+struct bloque{
+	char b_bits[47];
 };
 
 typedef struct opb{
@@ -43,100 +42,57 @@ typedef struct opb{
 	int key;
 	int mod;
 	int result;
-} opb; 
+} opb;
 
-
-void escribir (char block) 
+void *escribir (void *block) 
 {
-	ofstream escribir("Textodes.txt", ios::app);
+	struct benc *ps;
+	ps=(struct benc *)block;
+
+	ofstream escribir("Textoencriptado.txt", ios::app);
 	// Protección en caso el archivo falle en su ejecución
 	if (!escribir)
 	{
-		cerr << "Error. No se ha podido crear el archivo,  Textodes.txt" << endl;
+		cerr << "Error. No se ha podido crear el archivo,  Textoencriptado.txt" << endl;
 		exit(EXIT_FAILURE);
 	}
-	escribir<<block;	
+	escribir<<ps->b_bits;	
 }
-
-int inverso (int a, int mod){
-	int b, d;
-	for (b=0; b<mod; b++){
-		d=(a*b)%mod;
-		if (d==1){
-			//cout<<"["<<b<<"]";
-			return b;
-		}
-	}
-}
-
-int Escribe(int DATO){ 
-  pthread_mutex_lock (& semaf); 
-  while (cont == 88) 
-    pthread_cond_wait(& vacio, &semaf); 
-  cont++; buffer[in]= DATO;
-  in = (in+1) % 88;
-  pthread_cond_broadcast(& lleno); 
-  pthread_mutex_unlock(& semaf); 
-} 
-
 
 void *operarbit (void *unbit){
 	opb *ps = (opb *)unbit;
-	/*if (((ps->bit)-33)<33){
-		ps->bit=(ps->bit)-33;
-	}*/
 	int result;
-	int inv= inverso(ps->key,ps->mod);
-	result=(ps->bit)*(inv);
-	//cout<<" * "<<result<<" * ";
+	result=(ps->bit)*(ps->key);
 	if (result>(ps->mod)){
 		result=result%(ps->mod);
-		//cout<<" ¡ "<<result<<" ! ";
 		/*if (result<33){
 			result=result+33;
 		}*/
 	}
-	/*result=(ps->bit)*(ps->mod);
-	result=result/(ps->key);*/
-	//ps->result=char(result);
 	ps->result=result;
+	//ps->result=char(result);
 	pthread_exit(NULL);	
 }
 
-int Lee(){ 
-	int dato; 
-	pthread_mutex_lock(& semaf);
-	while (cont == 0) 
-	    pthread_cond_wait(& lleno, &semaf); 
-	cont--; dato = buffer[out]; 
-	out = (out+1) % 88;
-	pthread_cond_broadcast(& vacio); 
-	pthread_mutex_unlock(& semaf); 
-	return dato; 
-} 
+void *output(void *block)
+{
+	struct bloques *ps;
+	ps=(struct bloques *)block;
+	cout <<ps->b_bits<<endl<<endl;
+}
 
-
-void *productor(void * arg){
-	struct benc *ps;
-	ps=(struct benc *)arg; 
-  	int i; 
-	for (i= 0; i< 88; i++) 
-	    Escribe(ps->b_bits[i]); 
-	pthread_exit(0); 
-} 
 
 int main(int argc, char *argv[])
-{ 
-  	//int i; 
-  	pthread_t hijo;
-  	in = out = cont = 0;
+{
+	//Declaracion de la estructura
+	struct bloques bls;
 
-  	struct benc ben;
+	struct benc ben;
 
 	//struct opb opbe;
 	opb opbe;
 
-	int codllave[88]={
+	int perini[88]={
 		63,44,88,61,83,
 		37,45,79,3,31,
 		68,60,78,74,29,
@@ -156,28 +112,6 @@ int main(int argc, char *argv[])
 		53,23,54,14,75,
 		69,18,19};
 
-	int perini[88]={
-		24,26,9,39,75,
-		36,33,52,47,23,
-		64,59,78,84,48,
-		79,77,87,88,32,
-		66,58,82,49,16,
-		70,51,43,15,27,
-		10,65,74,72,67,
-		68,6,29,76,44,
-		40,21,18,2,7,
-		57,73,41,28,53,
-		63,61,81,83,56,
-		50,34,55,31,12,
-		4,22,1,38,62,
-		69,54,11,86,37,
-		46,25,20,14,85,
-		19,71,13,8,35,
-		17,42,5,30,45,
-		80,60,3};
-
-	/*Esta se uso para encriptar, tomar de base y calcular sus inversos multiplicativos 
-	en 100,140,150,160,170,180,190,200,210,220*/
 	int llave[88]={
 		2,3,5,7,11,
 		31,37,41,43,47,
@@ -201,12 +135,9 @@ int main(int argc, char *argv[])
 		503,509,521
 	};
 
- 
-	pthread_mutex_init(&semaf, NULL); 
-  	pthread_cond_init(&lleno, NULL); 
-  	pthread_cond_init(&vacio, NULL);
-
-  	int rc, rc1; //valor de retorno del pthread
+	int rc, rc1; //valor de retorno del pthread
+	long i=0;
+	  
 	pthread_t tid;
 	  
 	pthread_attr_t attr;
@@ -215,10 +146,12 @@ int main(int argc, char *argv[])
 	  
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 
-	//char cadini[88];
+	char cadini[88];
 	int f=0;
 	char x;
-  	ifstream texto("Textoencriptado.txt", ios::in);
+	opbe.result='a';
+
+	ifstream texto("Prueba.txt", ios::in);
 
 	if (!texto)
 	{
@@ -226,90 +159,22 @@ int main(int argc, char *argv[])
 		exit(EXIT_FAILURE); // terminate with error
 	}
 
-
 	while (texto >> x)
 	{
 		int y= static_cast<unsigned char>(x);
 		//int y = atoi(x);
-		//cout<<y<<" - ";
-		y=y-33;
+		cout<<y<<" - ";
+		/*char y=x;
+		if (y==' '){
+			y=157;
+		}
+		y=y-' ';*/
 
-		//cout<<y<<" - ";
-
-		opbe.bit=y;
-		//opbe.key=llave[f];
-		opbe.key=11;
-
-		int w=0;
 		opbe.mod=223;
-
-		rc = pthread_create(&tid, &attr, operarbit, (void *)&opbe);
-						
-		if (rc) {              
-			printf("ERROR; return code from pthread_create() is %d\n", rc);
-			exit(-1);
-		}
-
-		rc = pthread_join(tid, NULL);
-		if (rc) {
-			printf("ERROR; return code from pthread_join() is %d\n", rc);
-			exit(-1);
-		}
-		/*while (w<9){
-			switch (w){
-				case 0:
-					opbe.mod=113;
-				break;
-				case 1:
-					opbe.mod=151;
-				break;
-				case 2:
-					opbe.mod=157;
-				break;
-				case 3:
-					opbe.mod=163;
-				break;
-				case 4:
-					opbe.mod=167;
-				break;
-				case 5:
-					opbe.mod=173;
-				break;
-				case 6:
-					opbe.mod=199;
-				break;
-				case 7:
-					opbe.mod=211;
-				break;
-				case 8:
-					opbe.mod=223;
-				break;
-			}
-			
-			rc = pthread_create(&tid, &attr, operarbit, (void *)&opbe);
-						
-			if (rc) {              
-				printf("ERROR; return code from pthread_create() is %d\n", rc);
-				exit(-1);
-			}
-
-			rc = pthread_join(tid, NULL);
-			//char res;
-			//res=opbe.result;
-			opbe.bit=opbe.result;
-			if (rc) {
-				printf("ERROR; return code from pthread_join() is %d\n", rc);
-				exit(-1);
-			}
-			w++;
-			//escribir(res);
-		}*/
-
-		f++;
-
-		/*opbe.mod=220;
-		//opbe.key=llave[perini[f]-1];
-		rc = pthread_create(&tid, &attr, operarbit, (void *)&opbe);
+		opbe.bit=y;
+		opbe.key=11;
+		
+		rc = pthread_create(&tid, &attr/*NULL*/, operarbit, (void *)&opbe);
 						
 		if (rc) {              
 			printf("ERROR; return code from pthread_create() is %d\n", rc);
@@ -319,39 +184,100 @@ int main(int argc, char *argv[])
 		rc = pthread_join(tid, NULL);
 		//char res;
 		//res=opbe.result;
-		//escribir(res);
-		/*res=res+' ';
-		if (res==157){
-			res=' ';
-		}*/
+		//ben.b_bits[f]=res;
 		//ben.b_bits[perini[f]-1]=res;
-		cout<<opbe.result<<endl;
-		
-		ben.b_bits[f]=static_cast<char>(opbe.result);
-		escribir(static_cast<char>(opbe.result));
-		//ben.b_bits[f]= itoa(opbe.result);
-		/*if (rc) {
+		opbe.bit=opbe.result;
+		if (rc) {
 			printf("ERROR; return code from pthread_join() is %d\n", rc);
 			exit(-1);
+		}
+		int w=0;
+		/*while (w<9){
+			//opbe.mod=opbe.mod-10;
+			/*if (w==1){
+				opbe.mod=100;
+			}*/
+			/*switch (w){
+				case 0:
+					opbe.mod=211;
+				break;
+				case 1:
+					opbe.mod=199;
+				break;
+				case 2:
+					opbe.mod=173;
+				break;
+				case 3:
+					opbe.mod=167;
+				break;
+				case 4:
+					opbe.mod=163;
+				break;
+				case 5:
+					opbe.mod=157;
+				break;
+				case 6:
+					opbe.mod=151;
+				break;
+				case 7:
+					opbe.mod=113;
+				break;
+				case 8:
+					opbe.mod=107;
+				break;
+			}
+			rc = pthread_create(&tid, &attr, operarbit, (void *)&opbe);
+						
+			if (rc) {              
+				printf("ERROR; return code from pthread_create() is %d\n", rc);
+				exit(-1);
+			}
+			rc = pthread_join(tid, NULL);
+			//res=opbe.result;
+			opbe.bit=opbe.result;
+			if (rc) {
+				printf("ERROR; return code from pthread_join() is %d\n", rc);
+				exit(-1);
+			}
+			w++;
+		}
+		//cout<<endl<<endl;*/
+
+		opbe.result=opbe.result+33;
+		cout<<opbe.result<<endl;
+		ben.b_bits[f]=static_cast<char>(opbe.result);
+		f++;
+		//ben.b_bits[f]=itoa(opbe.result);
+		/*if (y>32 && y<127){
+			opbe.result=opbe.result+33;
+			cout<<opbe.result<<endl;
+			ben.b_bits[f]=static_cast<char>(opbe.result);
+			f++;
 		}*/
 		
 		if (f%88==0)
 		{ 	
-			/*pthread_create(&hijo,NULL,productor,(void *)&ben);
-			int e=0;
-			for (e=0; e<88; e++){
-				escribir(Lee());
-			}*/	
+			cout<<endl<<endl;
+			rc = pthread_create(&tid, &attr, escribir, (void *)&ben);
+						
+			if (rc) {              
+				printf("ERROR; return code from pthread_create() is %d\n", rc);
+				exit(-1);
+			}
+
+			rc = pthread_join(tid, NULL);
+			if (rc) {
+				printf("ERROR; return code from pthread_join() is %d\n", rc);
+				exit(-1);
+			}
+				
 			f=0;
 		}
 	}
+	rc = pthread_create(&tid, &attr, escribir, (void *)&ben);
 
 	cout << endl;
 
 	pthread_attr_destroy(&attr);
 	pthread_exit(NULL);
-
-  	exit(0); 
 }
-
-
