@@ -30,7 +30,7 @@ struct bloques{
 };
 
 struct benc{
-	char b_bits[94];
+	char b_bits[88];
 };
 
 struct bloque{
@@ -274,8 +274,13 @@ int main(int argc, char *argv[])
 			f=0;
 		}
 	}
-	rc = pthread_create(&tid, &attr, escribir, (void *)&ben);
-
+	if (f<88){
+		int j=0;
+		for (j=f; j<89; j++){
+			ben.b_bits[j]=00;
+		}
+		rc = pthread_create(&tid, &attr, escribir, (void *)&ben);
+	}
 	cout << endl;
 
 	pthread_attr_destroy(&attr);
