@@ -326,6 +326,9 @@ int main(int argc, char *argv[])
 		}*/
 		//ben.b_bits[perini[f]-1]=res;
 		cout<<opbe.result<<endl;
+
+		if (x=='|')
+			opbe.result=32;
 		
 		ben.b_bits[f]=static_cast<char>(opbe.result);
 		escribir(static_cast<char>(opbe.result));

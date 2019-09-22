@@ -147,11 +147,15 @@ int main(int argc, char *argv[])
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 
 	char cadini[88];
+	char cadena[1];
 	int f=0;
 	char x;
 	opbe.result='a';
 
-	ifstream texto("Prueba.txt", ios::in);
+
+	//ifstream texto("Prueba.txt", ios::in);
+	FILE *texto;
+	texto=fopen("Prueba.txt", "r");
 
 	if (!texto)
 	{
@@ -159,8 +163,12 @@ int main(int argc, char *argv[])
 		exit(EXIT_FAILURE); // terminate with error
 	}
 
-	while (texto >> x)
+	while (/*texto >> x !texto.eof()*/!feof(texto))
 	{
+		size_t result;
+		result=fread(&x, 1,1,texto);
+		//texto.getline(cadena,1);
+		//x=cadena[1];
 		int y= static_cast<unsigned char>(x);
 		//int y = atoi(x);
 		cout<<y<<" - ";
@@ -246,6 +254,8 @@ int main(int argc, char *argv[])
 		opbe.result=opbe.result+33;
 		cout<<opbe.result<<endl;
 		ben.b_bits[f]=static_cast<char>(opbe.result);
+		if (y==32)
+			ben.b_bits[f]='|';
 		f++;
 		//ben.b_bits[f]=itoa(opbe.result);
 		/*if (y>32 && y<127){
