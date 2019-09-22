@@ -325,13 +325,19 @@ int main(int argc, char *argv[])
 			res=' ';
 		}*/
 		//ben.b_bits[perini[f]-1]=res;
-		cout<<opbe.result<<endl;
-
-		if (x=='|')
-			opbe.result=32;
 		
-		ben.b_bits[f]=static_cast<char>(opbe.result);
-		escribir(static_cast<char>(opbe.result));
+		if (opbe.result>0){
+			if (opbe.result!=215){
+				if (x=='|'){
+					opbe.result=32;
+				}
+				ben.b_bits[f]=static_cast<char>(opbe.result);
+				escribir(static_cast<char>(opbe.result));
+				cout<<opbe.result<<endl;
+			}
+		}
+		
+		
 		//ben.b_bits[f]= itoa(opbe.result);
 		/*if (rc) {
 			printf("ERROR; return code from pthread_join() is %d\n", rc);
@@ -346,6 +352,7 @@ int main(int argc, char *argv[])
 				escribir(Lee());
 			}*/	
 			f=0;
+			cout<<endl<<endl;
 		}
 	}
 

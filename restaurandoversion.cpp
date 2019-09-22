@@ -255,7 +255,11 @@ int main(int argc, char *argv[])
 		cout<<opbe.result<<endl;
 		ben.b_bits[f]=static_cast<char>(opbe.result);
 		if (y==32)
+		{	
 			ben.b_bits[f]='|';
+		}
+
+
 		f++;
 		//ben.b_bits[f]=itoa(opbe.result);
 		/*if (y>32 && y<127){
