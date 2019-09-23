@@ -2,7 +2,8 @@
 Universidad del Valle de Guatemala
 Proyecto 2 de Microprocesadores
 Encripcion de un archivo txt
-Fecha: 09 de septiembre de 2019
+Fecha: 26 de septiembre de 2019
+Programa final
 Integrantes:
 -Diana Ximena de Leon Figueroa
 -Maria Mercedes Retolaza Reyna
@@ -10,6 +11,7 @@ Integrantes:
 -Cristina Maria Bautista Silva 
 */
 
+//Declaración de librerías que se implementarán durante la ejecución 
 #include <stdio.h>
 #include <string.h>
 #include <pthread.h>
@@ -227,7 +229,6 @@ int main(int argc, char *argv[])
 		params.b_bits[f] = static_cast<char>(params.result);
 
 		//Si el charOfValue es un espacio se escribe un charOfValue representativo
-
 		if (y == 32)
 		{
 			params.b_bits[f] = '|';
@@ -236,12 +237,10 @@ int main(int argc, char *argv[])
 		f++;
 
 		//Escritura del bloque en el archivo de textFile
-
 		if (f % 88 == 0)
 		{
 
 			params.task = 2;
-
 			rc = pthread_create(&tid, &attr, taskpool, (void *)&params);
 
 			if (rc)
