@@ -27,12 +27,12 @@ Integrantes:
 using namespace std;
 
 int in, out, cont, buffer[88];
-pthread_cond_t lleno, vacio;
+pthread_cond_t fullValue, emptyValue;
 pthread_mutex_t semaf;
 
-typedef struct caracter
+typedef struct charOfValue
 {
-	int tarea;
+	int task;
 	int bit;
 	int key;
 	int mod;
@@ -40,9 +40,9 @@ typedef struct caracter
 	int fin;
 	int b_bits[88];
 	FILE *desfile;
-} caracter;
+} charOfValue;
 
-void escribir(char block, FILE *desfile)
+void writeToFileText(char block, FILE *desfile)
 {
 	fwrite(&block, 1, 1, desfile);
 }
@@ -60,21 +60,21 @@ int inverso(int a, int mod)
 	}
 }
 
-int Escribe(int DATO)
+int writeToFile(int valueOfUncrypt)
 {
 	pthread_mutex_lock(&semaf);
 	while (cont == 88)
-		pthread_cond_wait(&vacio, &semaf);
+		pthread_cond_wait(&emptyValue, &semaf);
 	cont++;
-	buffer[in] = DATO;
+	buffer[in] = valueOfUncrypt;
 	in = (in + 1) % 88;
-	pthread_cond_broadcast(&lleno);
+	pthread_cond_broadcast(&fullValue);
 	pthread_mutex_unlock(&semaf);
 }
 
-void operarbit(void *unbit)
+void getBitOfUncrypt(void *unbit)
 {
-	caracter *ps = (caracter *)unbit;
+	charOfValue *ps = (charOfValue *)unbit;
 	int result;
 	int inv = inverso(ps->key, ps->mod);
 	result = (ps->bit) * (inv);
@@ -86,44 +86,44 @@ void operarbit(void *unbit)
 	pthread_exit(NULL);
 }
 
-int Lee()
+int reedFile()
 {
-	int dato;
-	char midato;
+	int valueOfUncrypt;
+	char myValue;
 	pthread_mutex_lock(&semaf);
 	while (cont == 0)
-		pthread_cond_wait(&lleno, &semaf);
+		pthread_cond_wait(&fullValue, &semaf);
 	cont--;
-	dato = buffer[out];
+	valueOfUncrypt = buffer[out];
 	out = (out + 1) % 88;
-	pthread_cond_broadcast(&vacio);
+	pthread_cond_broadcast(&emptyValue);
 	pthread_mutex_unlock(&semaf);
-	midato = static_cast<char>(dato);
-	return midato;
+	myValue = static_cast<char>(valueOfUncrypt);
+	return myValue;
 }
 
-void productor(void *arg)
+void getText(void *arg)
 {
-	caracter *ps = (caracter *)arg;
+	charOfValue *ps = (charOfValue *)arg;
 	int i, final;
 	final = ps->fin;
 	for (i = 0; i < 88; i++)
-		Escribe(ps->b_bits[i]);
+		writeToFile(ps->b_bits[i]);
 	pthread_exit(0);
 }
 
 void *taskpool(void *argumento)
 {
 
-	caracter *ps = (caracter *)argumento;
+	charOfValue *ps = (charOfValue *)argumento;
 
-	switch (ps->tarea)
+	switch (ps->task)
 	{
 	case 1:
-		operarbit(argumento);
+		getBitOfUncrypt(argumento);
 		break;
 	case 2:
-		productor(argumento);
+		getText(argumento);
 		break;
 	}
 
@@ -136,7 +136,7 @@ int main(int argc, char *argv[])
 
 	//Declaracion de la estructura
 
-	caracter parametros;
+	charOfValue params;
 
 	int llave[10] = {
 		2, 3, 5, 7, 11,
@@ -145,8 +145,8 @@ int main(int argc, char *argv[])
 	//Inicializacion de variables de condicion
 
 	pthread_mutex_init(&semaf, NULL);
-	pthread_cond_init(&lleno, NULL);
-	pthread_cond_init(&vacio, NULL);
+	pthread_cond_init(&fullValue, NULL);
+	pthread_cond_init(&emptyValue, NULL);
 
 	//Inicializacion de variables del pthread
 
@@ -164,12 +164,12 @@ int main(int argc, char *argv[])
 
 	//Abrir archivo para escritura del texto
 
-	FILE *escribiendo;
-	escribiendo = fopen("Textodes.txt", "w");
+	FILE *writingNewText;
+	writingNewText = fopen("Textodes.txt", "w");
 
 	//Si hay un error para abrir el archivo
 
-	if (!escribiendo)
+	if (!writingNewText)
 	{
 		cerr << "Error. No se ha podido crear el archivo,  Textodes.txt" << endl;
 		exit(EXIT_FAILURE);
@@ -195,7 +195,7 @@ int main(int argc, char *argv[])
 
 		y = y - 33;
 
-		parametros.bit = y;
+		params.bit = y;
 
 		int w = 9;
 
@@ -204,17 +204,17 @@ int main(int argc, char *argv[])
 		while (w >= 0)
 		{
 
-			parametros.tarea = 1;
-			parametros.key = llave[w];
+			params.task = 1;
+			params.key = llave[w];
 
 			switch (w)
 			{
 			case 9:
-				parametros.mod = 223;
+				params.mod = 223;
 				break;
 			}
 
-			rc = pthread_create(&tid, &attr, taskpool, (void *)&parametros);
+			rc = pthread_create(&tid, &attr, taskpool, (void *)&params);
 
 			if (rc)
 			{
@@ -223,7 +223,7 @@ int main(int argc, char *argv[])
 			}
 
 			rc = pthread_join(tid, NULL);
-			parametros.bit = parametros.result;
+			params.bit = params.result;
 			if (rc)
 			{
 				printf("ERROR; return code from pthread_join() is %d\n", rc);
@@ -234,15 +234,15 @@ int main(int argc, char *argv[])
 
 		//Si no es ningun caracter fuera de rango
 
-		if (parametros.result > 0)
+		if (params.result > 0)
 		{
-			if (parametros.result != 215)
+			if (params.result != 215)
 			{
 				if (x == '|')
 				{
-					parametros.result = 32;
+					params.result = 32;
 				}
-				parametros.b_bits[f] = parametros.result;
+				params.b_bits[f] = params.result;
 			}
 		}
 
@@ -252,13 +252,13 @@ int main(int argc, char *argv[])
 
 		if (f % 88 == 0)
 		{
-			parametros.fin = f;
-			parametros.tarea = 2;
-			pthread_create(&tid, NULL, taskpool, (void *)&parametros);
+			params.fin = f;
+			params.task = 2;
+			pthread_create(&tid, NULL, taskpool, (void *)&params);
 			int e = 0;
 			for (e = 0; e < 88; e++)
 			{
-				escribir(Lee(), escribiendo);
+				writeToFileText(reedFile(), writingNewText);
 			}
 			f = 0;
 		}
@@ -268,13 +268,13 @@ int main(int argc, char *argv[])
 
 	if (f < 88)
 	{
-		parametros.fin = f;
-		parametros.tarea = 2;
-		pthread_create(&tid, NULL, taskpool, (void *)&parametros);
+		params.fin = f;
+		params.task = 2;
+		pthread_create(&tid, NULL, taskpool, (void *)&params);
 		int e = 0;
 		for (e = 0; e < f; e++)
 		{
-			escribir(Lee(), escribiendo);
+			writeToFileText(reedFile(), writingNewText);
 		}
 		f = 0;
 		cout << endl

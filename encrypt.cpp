@@ -30,33 +30,33 @@ pthread_mutex_t lock;
 
 //Creacion de estructuras
 
-typedef struct caracter
+typedef struct charOfValue
 {
-	int tarea;
+	int task;
 	int bit;
 	int key;
 	int mod;
 	int result;
 	char b_bits[88];
-} caracter;
+} charOfValue;
 
-void escribir(void *block)
+void writeTextOfFile(void *block)
 {
-	caracter *ps = (caracter *)block;
+	charOfValue *ps = (charOfValue *)block;
 
-	ofstream escribir("Textoencriptado.txt", ios::app);
+	ofstream writeTextOfFile("Textoencriptado.txt", ios::app);
 	// Protección en caso el archivo falle en su ejecución
-	if (!escribir)
+	if (!writeTextOfFile)
 	{
 		cerr << "Error. No se ha podido crear el archivo,  Textoencriptado.txt" << endl;
 		exit(EXIT_FAILURE);
 	}
-	escribir << ps->b_bits << endl;
+	writeTextOfFile << ps->b_bits << endl;
 }
 
-void operarbit(void *uncaracter)
+void getBitOfEncrypt(void *getOneChar)
 {
-	caracter *ps = (caracter *)uncaracter;
+	charOfValue *ps = (charOfValue *)getOneChar;
 	int result;
 	result = (ps->bit) * (ps->key);
 	if (result > (ps->mod))
@@ -66,20 +66,20 @@ void operarbit(void *uncaracter)
 	ps->result = result;
 }
 
-void *taskpool(void *argumento)
+void *taskpool(void *argument)
 {
 
 	pthread_mutex_lock(&lock); //establecer bloqueo antes utilizar recurso
 
-	caracter *ps = (caracter *)argumento;
+	charOfValue *ps = (charOfValue *)argument;
 
-	switch (ps->tarea)
+	switch (ps->task)
 	{
 	case 1:
-		operarbit(argumento);
+		getBitOfEncrypt(argument);
 		break;
 	case 2:
-		escribir(argumento);
+		writeTextOfFile(argument);
 		break;
 	}
 
@@ -99,7 +99,7 @@ int main(int argc, char *argv[])
 
 	//Declaracion de la estructura
 
-	caracter parametros;
+	charOfValue params;
 
 	int llave[10] = {
 		2, 3, 5, 7, 11,
@@ -120,59 +120,59 @@ int main(int argc, char *argv[])
 
 	int f = 0;
 	char x;
-	parametros.result = 'a';
+	params.result = 'a';
 
 	//Abrir el archivo para lectura
 
-	FILE *texto;
-	texto = fopen("Prueba.txt", "r");
+	FILE *textFile;
+	textFile = fopen("Prueba.txt", "r");
 
 	//Deteccion de errores en lectura del archivo
 
-	if (!texto)
+	if (!textFile)
 	{
 		cerr << "Error, No se puede abrir Prueba.txt";
 		exit(EXIT_FAILURE); // terminate with error
 	}
 
-	printf("\n*****Comenzando encripcion del texto*****\n");
+	printf("\n*****Comenzando encripcion del textFile*****\n");
 
 	//Mientras no haya llegado al final del archivo
 
-	while (!feof(texto))
+	while (!feof(textFile))
 	{
-		//Leer el caracter y convertirlo a su correspondiente en decimal
+		//Leer el charOfValue y convertirlo a su correspondiente en decimal
 
 		size_t result;
-		result = fread(&x, 1, 1, texto);
+		result = fread(&x, 1, 1, textFile);
 		int y = static_cast<unsigned char>(x);
 
 		switch (y)
 		{
 		case 225:
-			parametros.bit = 97;
+			params.bit = 97;
 			break;
 		case 233:
-			parametros.bit = 101;
+			params.bit = 101;
 			break;
 		case 237:
-			parametros.bit = 105;
+			params.bit = 105;
 			break;
 		case 243:
-			parametros.bit = 111;
+			params.bit = 111;
 			break;
 		case 250:
-			parametros.bit = 117;
+			params.bit = 117;
 			break;
 		case 241:
-			parametros.bit = 110;
+			params.bit = 110;
 			break;
 		default:
-			parametros.bit = y;
+			params.bit = y;
 			break;
 		}
 
-		parametros.tarea = 1;
+		params.task = 1;
 
 		int w = 0;
 
@@ -180,16 +180,16 @@ int main(int argc, char *argv[])
 		while (w < 10)
 		{
 
-			parametros.key = llave[w];
+			params.key = llave[w];
 
 			switch (w)
 			{
 			case 0:
-				parametros.mod = 223;
+				params.mod = 223;
 				break;
 			}
 
-			rc = pthread_create(&tid, &attr, taskpool, (void *)&parametros);
+			rc = pthread_create(&tid, &attr, taskpool, (void *)&params);
 
 			if (rc)
 			{
@@ -198,7 +198,7 @@ int main(int argc, char *argv[])
 			}
 
 			rc = pthread_join(tid, NULL);
-			parametros.bit = parametros.result;
+			params.bit = params.result;
 
 			if (rc)
 			{
@@ -208,29 +208,29 @@ int main(int argc, char *argv[])
 			w++;
 		}
 
-		//Se le suma 33 al valor obtenido para que sea un caracter imprimible
-		parametros.result = parametros.result + 33;
+		//Se le suma 33 al valor obtenido para que sea un charOfValue imprimible
+		params.result = params.result + 33;
 
 		//Casteo a char y escritura en el array
-		parametros.b_bits[f] = static_cast<char>(parametros.result);
+		params.b_bits[f] = static_cast<char>(params.result);
 
-		//Si el caracter es un espacio se escribe un caracter representativo
+		//Si el charOfValue es un espacio se escribe un charOfValue representativo
 
 		if (y == 32)
 		{
-			parametros.b_bits[f] = '|';
+			params.b_bits[f] = '|';
 		}
 
 		f++;
 
-		//Escritura del bloque en el archivo de texto
+		//Escritura del bloque en el archivo de textFile
 
 		if (f % 88 == 0)
 		{
 
-			parametros.tarea = 2;
+			params.task = 2;
 
-			rc = pthread_create(&tid, &attr, taskpool, (void *)&parametros);
+			rc = pthread_create(&tid, &attr, taskpool, (void *)&params);
 
 			if (rc)
 			{
@@ -256,10 +256,10 @@ int main(int argc, char *argv[])
 		int j = 0;
 		for (j = f; j < 89; j++)
 		{
-			parametros.b_bits[j] = 00;
+			params.b_bits[j] = 00;
 		}
-		parametros.tarea = 2;
-		rc = pthread_create(&tid, &attr, taskpool, (void *)&parametros);
+		params.task = 2;
+		rc = pthread_create(&tid, &attr, taskpool, (void *)&params);
 	}
 
 	printf("\n#####Encripcion Finalizada#####\n");
