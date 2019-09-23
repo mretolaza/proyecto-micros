@@ -11,7 +11,7 @@ Integrantes:
 -Cristina Maria Bautista Silva 
 */
 
-//Declaración de librerías que se implementarán durante la ejecución 
+//Declaración de librerías que se implementarán durante la ejecución
 #include <stdio.h>
 #include <string.h>
 #include <pthread.h>
@@ -32,7 +32,7 @@ pthread_mutex_t lock;
 
 //Creacion de estructuras
 //que se utiizarán para el encriptado
-//del texto o palabra cargada en el archivo .txt 
+//del texto o palabra cargada en el archivo .txt
 
 typedef struct charOfValue
 {
@@ -47,10 +47,10 @@ typedef struct charOfValue
 
 //Se declara la función tipo puntero WriteTextOfFile
 //que será la encargada de escribir en el archivo de texto la palabra
-//final encriptada. 
+//final encriptada.
 
-//parametro tipo puntero --> palabra a retornar 
-//retorno: archivo .txt con la palabra encriptada 
+//parametro tipo puntero --> palabra a retornar
+//retorno: archivo .txt con la palabra encriptada
 void writeTextOfFile(void *block)
 {
 	charOfValue *ps = (charOfValue *)block;
@@ -58,21 +58,21 @@ void writeTextOfFile(void *block)
 	ofstream writeTextOfFile("Textoencriptado.txt", ios::app);
 	// Protección en caso el archivo falle en su ejecución
 	if (!writeTextOfFile)
-	{	//retorno de info si el archivo falla en la ejecución
+	{ //retorno de info si el archivo falla en la ejecución
 		cerr << "Error. No se ha podido crear el archivo,  Textoencriptado.txt" << endl;
 		exit(EXIT_FAILURE);
 	}
 	writeTextOfFile << ps->b_bits << endl;
 }
 
-//Se obtiene los valores con los que se encriptará la 
-//palabra final. 
+//Se obtiene los valores con los que se encriptará la
+//palabra final.
 //Se obtiene caracter por caracter y se realiza la ejecución de los hilos del programa
-//que se encargan de retornar algo inentendible 
+//que se encargan de retornar algo inentendible
 void getBitOfEncrypt(void *getOneChar)
-{	//se declara la estructura inicial 
+{ //se declara la estructura inicial
 	charOfValue *ps = (charOfValue *)getOneChar;
-	int result; //variable temporal que almacena el resultado 
+	int result; //variable temporal que almacena el resultado
 	result = (ps->bit) * (ps->key);
 	if (result > (ps->mod))
 	{
@@ -81,9 +81,9 @@ void getBitOfEncrypt(void *getOneChar)
 	//retorno de resultado
 	ps->result = result;
 }
-//Implementación del taskpoll de tareas 
-//Resumen: se encarga de recibir las tareas que debe de realizar y 
-//ejecuta de acorde al valor que retorna el argumento. 
+//Implementación del taskpoll de tareas
+//Resumen: se encarga de recibir las tareas que debe de realizar y
+//ejecuta de acorde al valor que retorna el argumento.
 void *taskpool(void *argument)
 {
 
@@ -91,15 +91,15 @@ void *taskpool(void *argument)
 	//Declaración de valor a encriptar (obtiene el valor almanecado)
 	charOfValue *ps = (charOfValue *)argument;
 
-	//Case de tareas, deacorde al valor (1 o 2) será 
-	//el indicador de la tarea que deberá de ejecutar. 
+	//Case de tareas, deacorde al valor (1 o 2) será
+	//el indicador de la tarea que deberá de ejecutar.
 	switch (ps->task)
 	{
 	case 1:
-		getBitOfEncrypt(argument); //llamado a la función 
+		getBitOfEncrypt(argument); //llamado a la función
 		break;
 	case 2:
-		writeTextOfFile(argument); //llamado a la función 
+		writeTextOfFile(argument); //llamado a la función
 		break;
 	}
 	//implementación de "detención" de variables mutex
@@ -107,7 +107,7 @@ void *taskpool(void *argument)
 	return NULL;
 }
 
-//Inicio de programa principal 
+//Inicio de programa principal
 int main(int argc, char *argv[])
 {
 	// Si existe un fallo en la inicializacion de mutex
@@ -120,7 +120,7 @@ int main(int argc, char *argv[])
 	//Declaracion de la estructura
 	charOfValue params;
 
-	//Declaración de llave primaria 
+	//Declaración de llave primaria
 	int llave[10] = {
 		2, 3, 5, 7, 11,
 		31, 37, 41, 43, 47};
@@ -135,7 +135,7 @@ int main(int argc, char *argv[])
 	pthread_attr_init(&attr);
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 
-	//Declaración de variables temporales 
+	//Declaración de variables temporales
 	int f = 0;
 	char x;
 	params.result = 'a';
