@@ -144,7 +144,31 @@ int main(int argc, char *argv[])
 		size_t result;
 		result = fread(&x, 1,1,texto);
 		int y= static_cast<unsigned char>(x);
-		parametros.bit=y;
+
+		switch(y){
+			case 225:
+				parametros.bit=97;
+			break;
+			case 233:
+				parametros.bit=101;
+			break;
+			case 237:
+				parametros.bit=105;
+			break;
+			case 243:
+				parametros.bit=111;
+			break;
+			case 250:
+				parametros.bit=117;
+			break;
+			case 241:
+				parametros.bit=110;
+			break;
+			default:
+				parametros.bit=y;
+			break;
+		}
+		
 		
 		parametros.tarea=1;
 

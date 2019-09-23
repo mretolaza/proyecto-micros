@@ -38,19 +38,13 @@ typedef struct caracter{
 	int result;
 	int fin;
 	int b_bits[88];
+	FILE *desfile;
 } caracter;
 
 
-void escribir (char block) 
+void escribir (char block, FILE *desfile) 
 {
-	ofstream escribir("Textodes.txt", ios::app);
-	// Protección en caso el archivo falle en su ejecución
-	if (!escribir)
-	{
-		cerr << "Error. No se ha podido crear el archivo,  Textodes.txt" << endl;
-		exit(EXIT_FAILURE);
-	}
-	escribir<<block;	
+	fwrite(&block, 1,1, desfile);
 }
 
 int inverso (int a, int mod){
@@ -160,6 +154,20 @@ int main(int argc, char *argv[])
 	int f=0;
 	char x;
 
+	//Abrir archivo para escritura del texto
+
+	FILE *escribiendo;
+	escribiendo=fopen("Textodes.txt", "w");
+
+	//Si hay un error para abrir el archivo 
+
+	if (!escribiendo)
+	{
+		cerr << "Error. No se ha podido crear el archivo,  Textodes.txt" << endl;
+		exit(EXIT_FAILURE);
+	}
+
+
 	//Lectura del texto
 
   	ifstream texto("Textoencriptado.txt", ios::in);
@@ -213,8 +221,7 @@ int main(int argc, char *argv[])
 			w--;
 		}
 
-		f++;
-
+		
 		//Si no es ningun caracter fuera de rango
 
 		if (parametros.result>0){
@@ -226,17 +233,18 @@ int main(int argc, char *argv[])
 			}
 		}
 		
+		f++;
 		
 		//Utiliza las variables de condicion para escribir el texto
 
 		if (f%88==0)
 		{ 	
-			parametros.fin=88;
+			parametros.fin=f;
 			parametros.tarea = 2;
 			pthread_create(&tid,NULL,taskpool,(void *)&parametros);
 			int e=0;
 			for (e=0; e<88; e++){
-				escribir(Lee());
+				escribir(Lee(), escribiendo);
 			}
 			f=0;
 		}
@@ -251,7 +259,7 @@ int main(int argc, char *argv[])
 		pthread_create(&tid,NULL,taskpool,(void *)&parametros);
 		int e=0;
 		for (e=0; e<f; e++){
-			escribir(Lee());
+			escribir(Lee(), escribiendo);
 		}
 		f=0;
 		cout<<endl<<endl;
