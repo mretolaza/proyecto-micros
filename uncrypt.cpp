@@ -11,12 +11,12 @@ Integrantes:
 -Cristina Maria Bautista Silva 
 */
 
-#include<stdio.h>
-#include<string.h>
-#include<pthread.h>
-#include<stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <pthread.h>
+#include <stdlib.h>
 #include <sys/types.h>
-#include<unistd.h>
+#include <unistd.h>
 #include <cstdlib>
 #include <sstream>
 #include <iostream>
@@ -26,11 +26,12 @@ Integrantes:
 
 using namespace std;
 
-int in, out, cont, buffer[88]; 
-pthread_cond_t lleno, vacio; 
+int in, out, cont, buffer[88];
+pthread_cond_t lleno, vacio;
 pthread_mutex_t semaf;
 
-typedef struct caracter{
+typedef struct caracter
+{
 	int tarea;
 	int bit;
 	int key;
@@ -41,79 +42,88 @@ typedef struct caracter{
 	FILE *desfile;
 } caracter;
 
-
-void escribir (char block, FILE *desfile) 
+void escribir(char block, FILE *desfile)
 {
-	fwrite(&block, 1,1, desfile);
+	fwrite(&block, 1, 1, desfile);
 }
 
-int inverso (int a, int mod){
+int inverso(int a, int mod)
+{
 	int b, d;
-	for (b=0; b<mod; b++){
-		d=(a*b)%mod;
-		if (d==1){
+	for (b = 0; b < mod; b++)
+	{
+		d = (a * b) % mod;
+		if (d == 1)
+		{
 			return b;
 		}
 	}
 }
 
-int Escribe(int DATO){ 
-  pthread_mutex_lock (& semaf); 
-  while (cont == 88) 
-    pthread_cond_wait(& vacio, &semaf); 
-  cont++; buffer[in]= DATO;
-  in = (in+1) % 88;
-  pthread_cond_broadcast(& lleno); 
-  pthread_mutex_unlock(& semaf); 
-} 
-
-
-void operarbit (void *unbit){
-	caracter *ps = (caracter *)unbit;
-	int result;
-	int inv= inverso(ps->key,ps->mod);
-	result=(ps->bit)*(inv);
-	if (result>(ps->mod)){
-		result=result%(ps->mod);
-	}
-	ps->result=result;
-	pthread_exit(NULL);	
+int Escribe(int DATO)
+{
+	pthread_mutex_lock(&semaf);
+	while (cont == 88)
+		pthread_cond_wait(&vacio, &semaf);
+	cont++;
+	buffer[in] = DATO;
+	in = (in + 1) % 88;
+	pthread_cond_broadcast(&lleno);
+	pthread_mutex_unlock(&semaf);
 }
 
-int Lee(){ 
-	int dato; 
+void operarbit(void *unbit)
+{
+	caracter *ps = (caracter *)unbit;
+	int result;
+	int inv = inverso(ps->key, ps->mod);
+	result = (ps->bit) * (inv);
+	if (result > (ps->mod))
+	{
+		result = result % (ps->mod);
+	}
+	ps->result = result;
+	pthread_exit(NULL);
+}
+
+int Lee()
+{
+	int dato;
 	char midato;
-	pthread_mutex_lock(& semaf);
-	while (cont == 0) 
-	    pthread_cond_wait(& lleno, &semaf); 
-	cont--; dato = buffer[out]; 
-	out = (out+1) % 88;
-	pthread_cond_broadcast(& vacio); 
-	pthread_mutex_unlock(& semaf); 
+	pthread_mutex_lock(&semaf);
+	while (cont == 0)
+		pthread_cond_wait(&lleno, &semaf);
+	cont--;
+	dato = buffer[out];
+	out = (out + 1) % 88;
+	pthread_cond_broadcast(&vacio);
+	pthread_mutex_unlock(&semaf);
 	midato = static_cast<char>(dato);
-	return midato; 
-} 
+	return midato;
+}
 
-
-void productor(void * arg){
+void productor(void *arg)
+{
 	caracter *ps = (caracter *)arg;
-  	int i, final; 
-  	final=ps->fin;
-	for (i= 0; i< 88; i++) 
-	    Escribe(ps->b_bits[i]); 
-	pthread_exit(0); 
-} 
+	int i, final;
+	final = ps->fin;
+	for (i = 0; i < 88; i++)
+		Escribe(ps->b_bits[i]);
+	pthread_exit(0);
+}
 
-void *taskpool (void *argumento){
+void *taskpool(void *argumento)
+{
 
-	caracter *ps = (caracter *) argumento;
+	caracter *ps = (caracter *)argumento;
 
-	switch(ps->tarea){
-		case 1:
-			operarbit(argumento);
+	switch (ps->tarea)
+	{
+	case 1:
+		operarbit(argumento);
 		break;
-		case 2:
-			productor(argumento);
+	case 2:
+		productor(argumento);
 		break;
 	}
 
@@ -121,45 +131,43 @@ void *taskpool (void *argumento){
 }
 
 int main(int argc, char *argv[])
-{ 
-  	in = out = cont = 0;
+{
+	in = out = cont = 0;
 
 	//Declaracion de la estructura
 
 	caracter parametros;
 
-	int llave[10]={
-		2,3,5,7,11,
-		31,37,41,43,47
-	};
+	int llave[10] = {
+		2, 3, 5, 7, 11,
+		31, 37, 41, 43, 47};
 
- 	
- 	//Inicializacion de variables de condicion
+	//Inicializacion de variables de condicion
 
-	pthread_mutex_init(&semaf, NULL); 
-  	pthread_cond_init(&lleno, NULL); 
-  	pthread_cond_init(&vacio, NULL);
+	pthread_mutex_init(&semaf, NULL);
+	pthread_cond_init(&lleno, NULL);
+	pthread_cond_init(&vacio, NULL);
 
-  	//Inicializacion de variables del pthread
+	//Inicializacion de variables del pthread
 
-  	int rc; //valor de retorno del pthread
+	int rc; //valor de retorno del pthread
 	pthread_t tid;
-	  
+
 	pthread_attr_t attr;
-	
+
 	pthread_attr_init(&attr);
-	  
+
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 
-	int f=0;
+	int f = 0;
 	char x;
 
 	//Abrir archivo para escritura del texto
 
 	FILE *escribiendo;
-	escribiendo=fopen("Textodes.txt", "w");
+	escribiendo = fopen("Textodes.txt", "w");
 
-	//Si hay un error para abrir el archivo 
+	//Si hay un error para abrir el archivo
 
 	if (!escribiendo)
 	{
@@ -167,12 +175,11 @@ int main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
-
 	//Lectura del texto
 
-  	ifstream texto("Textoencriptado.txt", ios::in);
+	ifstream texto("Textoencriptado.txt", ios::in);
 
-  	// Si hay un error al escribir el texto
+	// Si hay un error al escribir el texto
 
 	if (!texto)
 	{
@@ -184,85 +191,94 @@ int main(int argc, char *argv[])
 
 	while (texto >> x)
 	{
-		int y= static_cast<unsigned char>(x);
-		
-		y=y-33;
+		int y = static_cast<unsigned char>(x);
 
-		parametros.bit=y;
+		y = y - 33;
 
-		int w=9;
+		parametros.bit = y;
+
+		int w = 9;
 
 		// 10 rondas de encripcion
 
-		while (w>=0){
+		while (w >= 0)
+		{
 
-			parametros.tarea=1;
-			parametros.key=llave[w];
+			parametros.tarea = 1;
+			parametros.key = llave[w];
 
-			switch (w){
-				case 9:
-					parametros.mod=223;
+			switch (w)
+			{
+			case 9:
+				parametros.mod = 223;
 				break;
 			}
-			
+
 			rc = pthread_create(&tid, &attr, taskpool, (void *)&parametros);
-						
-			if (rc) {              
+
+			if (rc)
+			{
 				printf("ERROR; return code from pthread_create() is %d\n", rc);
 				exit(-1);
 			}
 
 			rc = pthread_join(tid, NULL);
-			parametros.bit=parametros.result;
-			if (rc) {
+			parametros.bit = parametros.result;
+			if (rc)
+			{
 				printf("ERROR; return code from pthread_join() is %d\n", rc);
 				exit(-1);
 			}
 			w--;
 		}
 
-		
 		//Si no es ningun caracter fuera de rango
 
-		if (parametros.result>0){
-			if (parametros.result!=215){
-				if (x=='|'){
-					parametros.result=32;
+		if (parametros.result > 0)
+		{
+			if (parametros.result != 215)
+			{
+				if (x == '|')
+				{
+					parametros.result = 32;
 				}
-				parametros.b_bits[f]=parametros.result;
+				parametros.b_bits[f] = parametros.result;
 			}
 		}
-		
+
 		f++;
-		
+
 		//Utiliza las variables de condicion para escribir el texto
 
-		if (f%88==0)
-		{ 	
-			parametros.fin=f;
+		if (f % 88 == 0)
+		{
+			parametros.fin = f;
 			parametros.tarea = 2;
-			pthread_create(&tid,NULL,taskpool,(void *)&parametros);
-			int e=0;
-			for (e=0; e<88; e++){
+			pthread_create(&tid, NULL, taskpool, (void *)&parametros);
+			int e = 0;
+			for (e = 0; e < 88; e++)
+			{
 				escribir(Lee(), escribiendo);
 			}
-			f=0;
+			f = 0;
 		}
 	}
 
 	// Si un bloque esta incompleto
 
-	if (f<88)
-	{ 	
-		parametros.fin=f;
+	if (f < 88)
+	{
+		parametros.fin = f;
 		parametros.tarea = 2;
-		pthread_create(&tid,NULL,taskpool,(void *)&parametros);
-		int e=0;
-		for (e=0; e<f; e++){
+		pthread_create(&tid, NULL, taskpool, (void *)&parametros);
+		int e = 0;
+		for (e = 0; e < f; e++)
+		{
 			escribir(Lee(), escribiendo);
 		}
-		f=0;
-		cout<<endl<<endl;
+		f = 0;
+		cout << endl
+			 << endl;
 	}
 
 	cout << endl;
@@ -272,7 +288,5 @@ int main(int argc, char *argv[])
 	pthread_attr_destroy(&attr);
 	pthread_exit(NULL);
 
-  	exit(0); 
+	exit(0);
 }
-
-
