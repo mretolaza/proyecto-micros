@@ -24,6 +24,7 @@ Integrantes:
 #include <cmath>
 #include <fstream> //file processing
 #include <iomanip> //read file
+#include <time.h>  // toma de tiempo
 
 using namespace std;
 
@@ -110,7 +111,11 @@ void *taskpool(void *argument)
 //Inicio de programa principal
 int main(int argc, char *argv[])
 {
+	//Variables de inicio de tiempo
+	clock_t t_ini, t_fin;
+	double secs;
 	// Si existe un fallo en la inicializacion de mutex
+	t_ini = clock(); // se comienza conteo de tiempo
 	if (pthread_mutex_init(&lock, NULL) != 0)
 	{
 		printf("\n Fallo de inicializacion de mutex \n");
@@ -274,6 +279,10 @@ int main(int argc, char *argv[])
 	}
 
 	printf("\n#####Encripcion Finalizada#####\n");
+	t_fin = clock(); //fin de tiempo
+	//retorno de total de tiempo
+	secs = (double)(t_fin - t_ini) / CLOCKS_PER_SEC;
+	printf("%.16g milisegundos\n", secs * 1000.0);
 
 	pthread_mutex_destroy(&lock); //destruccion de mutex dinamica ya usada
 	pthread_attr_destroy(&attr);
