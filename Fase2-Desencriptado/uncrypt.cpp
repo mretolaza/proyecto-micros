@@ -10,7 +10,6 @@ Integrantes:
 -Andrea Abril Palencia Gutierrez
 -Cristina Maria Bautista Silva 
 */
-
 //Declaración de librerías
 #include <stdio.h>
 #include <string.h>
@@ -24,6 +23,7 @@ Integrantes:
 #include <cmath>
 #include <fstream> //file processing
 #include <iomanip> //read file
+#include <time.h>  //variable de tiempo
 
 using namespace std;
 
@@ -163,6 +163,8 @@ void *taskpool(void *argumento)
 //Inicio del programa principal
 int main(int argc, char *argv[])
 {
+	clock_t t_ini, t_fin; //variable de inicio de tiempo
+	double secs;		  // variable de fin
 	//inicialización de variables contadoras globales
 	//en 0
 	in = out = cont = 0;
@@ -175,8 +177,8 @@ int main(int argc, char *argv[])
 		2, 3, 5, 7, 11,
 		31, 37, 41, 43, 47};
 
+	t_ini = clock(); // inicio de conteo de tiempo
 	//Inicializacion de variables de condicion
-
 	pthread_mutex_init(&semaf, NULL);
 	pthread_cond_init(&fullValue, NULL);
 	pthread_cond_init(&emptyValue, NULL);
@@ -312,6 +314,10 @@ int main(int argc, char *argv[])
 	cout << endl;
 
 	printf("\n#####Desencripcion Finalizada#####\n");
+	t_fin = clock(); //Fin de conteo de tiempo
+	//retorno de total de tiempo
+	secs = (double)(t_fin - t_ini) / CLOCKS_PER_SEC;
+	printf("%.16g milisegundos\n", secs * 1000.0);
 
 	pthread_attr_destroy(&attr);
 	pthread_exit(NULL);
